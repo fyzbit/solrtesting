@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<records>
+
+<record xmlns="http://www.loc.gov/MARC21/slim">
+  
+    <leader>00961cam a2200361 a 4500</leader>
+    <controlfield tag="001">000024365573</controlfield>
+    <controlfield tag="003">AuCNLKIN</controlfield>
+    <controlfield tag="005">20030723204724.0</controlfield>
+    <controlfield tag="008">030124s2002    enk           001 0 eng d</controlfield>
+    <datafield tag="015" ind1=" " ind2=" ">
+      <subfield code="a">GBA2-Y5330</subfield>
+    </datafield>
+    <datafield tag="020" ind1=" " ind2=" ">
+      <subfield code="a">0340786248 (pbk.)</subfield>
+    </datafield>
+    <datafield tag="035" ind1=" " ind2=" ">
+      <subfield code="a">(OCoLC)49206110</subfield>
+    </datafield>
+    <datafield tag="040" ind1=" " ind2=" ">
+      <subfield code="a">CStRLIN</subfield>
+      <subfield code="b">eng</subfield>
+      <subfield code="c">CStRLIN</subfield>
+      <subfield code="d">NRAND</subfield>
+      <subfield code="d">VCML</subfield>
+    </datafield>
+    <datafield tag="082" ind1="0" ind2="4">
+      <subfield code="a">155.937</subfield>
+      <subfield code="2">21</subfield>
+    </datafield>
+    <datafield tag="100" ind1="1" ind2=" ">
+      <subfield code="a">Kon, Andrea.</subfield>
+    </datafield>
+</record>
+</records>

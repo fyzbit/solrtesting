@@ -64,7 +64,8 @@
 			and back compatibility is not guaranteed. Names with both leading and trailing 
 			underscores (e.g. _version_) are reserved. -->
 
-		<field name="id" type="string" indexed="true" stored="true" required="true" />
+		<field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+		<field name="record" type="string" indexed="false" stored="true" required="true" multiValued="false" />
 		
 		<field name="ANBDNo" type="string_id" indexed="true" stored="true" required="true" />
 		
@@ -82,6 +83,8 @@
 			an existing field name or dynamic field, rather than reporting them as an 
 			error. alternately, change the type="ignored" to some other type e.g. "text" 
 			if you want unknown fields indexed and/or stored by default -->
+		<dynamicField name="*_sort" type="text_exact" indexed="true" stored="false" multiValued="false" />
+		<dynamicField name="*_exact" type="text_exact" indexed="true" stored="false" multiValued="true" />
 		<dynamicField name="*" type="text_la" indexed="true" stored="false" multiValued="true" />
 
 	</fields>
@@ -150,6 +153,23 @@
 			<analyzer type="query">
 				<charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
 				<tokenizer class="solr.StandardTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+		</fieldType>
+		
+		<!-- A general text field that has reasonable, generic cross-language defaults: 
+			it tokenizes with StandardTokenizer, removes stop words from case-insensitive 
+			"stopwords.txt" (empty by default), and down cases. At query time only, it 
+			also applies synonyms. -->
+		<fieldType name="text_exact" class="solr.TextField" positionIncrementGap="1000">
+			<analyzer type="index">
+				<charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
+				<tokenizer class="solr.KeywordTokenizerFactory" />
+				<filter class="solr.LowerCaseFilterFactory" />
+			</analyzer>
+			<analyzer type="query">
+				<charFilter class="solr.MappingCharFilterFactory" mapping="mapping-ISOLatin1Accent.txt"/>
+				<tokenizer class="solr.KeywordTokenizerFactory" />
 				<filter class="solr.LowerCaseFilterFactory" />
 			</analyzer>
 		</fieldType>

@@ -62,7 +62,7 @@
 	<!-- Data Directory Used to specify an alternate directory to hold all index 
 		data other than the default ./data under the Solr home. If replication is 
 		in use, this should match the replication configuration. -->
-	<dataDir>${solr.data.dir:}</dataDir>
+	<dataDir>${solr.data.dir:}/bib</dataDir>
 
 
 	<!-- The DirectoryFactory to use for indexes. solr.StandardDirectoryFactory, 
@@ -225,7 +225,7 @@
 		<!-- Enables a transaction log, currently used for real-time get. "dir" 
 			- the target directory for transaction logs, defaults to the solr data directory. -->
 		<updateLog>
-			<str name="dir">${solr.data.dir:}</str>
+			<str name="dir">${solr.data.dir:}/bib</str>
 		</updateLog>
 
 

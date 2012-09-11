@@ -96,7 +96,7 @@
        replication is in use, this should match the replication
        configuration.
     -->
-  <dataDir>${solr.data.dir:}</dataDir>
+  <dataDir>${solr.data.dir:}/auth</dataDir>
 
 
   <!-- The DirectoryFactory to use for indexes.
@@ -360,7 +360,7 @@
          "dir" - the target directory for transaction logs, defaults to the
             solr data directory.  --> 
     <updateLog>
-      <str name="dir">${solr.data.dir:}</str>
+      <str name="dir">${solr.data.dir:}/auth</str>
     </updateLog>
    
 

@@ -12,7 +12,7 @@
 
 	<properties>
 		<jetty.port>8080</jetty.port>
-		<solr.version>4.0.0-ALPHA</solr.version>
+		<solr.version>4.0.0-BETA</solr.version>
 		<solr.home>target/${project.artifactId}/WEB-INF/classes</solr.home>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

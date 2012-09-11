@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -13,8 +14,10 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Result;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -22,7 +25,9 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.marc4j.MarcReader;
+import org.marc4j.MarcWriter;
 import org.marc4j.MarcXmlReader;
+import org.marc4j.MarcXmlWriter;
 import org.marc4j.marc.ControlField;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Leader;
@@ -89,7 +94,6 @@ public class App {
 		}
 		
 		System.out.println(f.getName() + " " + result);
-		System.exit(0);
 	}
 
 	private static String processRecords(MarcReader records) throws SolrServerException, IOException {
@@ -108,6 +112,12 @@ public class App {
 
 	private static void processRecord(Collection<SolrInputDocument> docs, Record record) {
 		SolrInputDocument doc = new SolrInputDocument();
+		
+		StringWriter out = new StringWriter(20000);
+		MarcWriter writer = new MarcXmlWriter(new StreamResult(out));
+		writer.write(record);
+		
+		doc.addField("record", out.toString().replaceAll("</?collection[^>]+>", ""));
 		
     Leader leader = record.getLeader();
     char ldr6 = leader.getTypeOfRecord();
@@ -319,12 +329,16 @@ public class App {
 					doc.addField("NameRelatorCode", asStrings(subs, "4"));
 					doc.addField("NameRelatorTerm", asStrings(subs, "e"));
 					doc.addField("Name", asString(subs, "^4e"));
+					doc.addField("Name_exact", asString(subs, "^4e"));
+					doc.setField("Name_sort", asString(subs, "^4e"));
 					break;
 				}
 				
 				case 111: {
 					doc.addField("NameRelatorCode", asStrings(subs, "4"));
 					doc.addField("Name", asString(subs, "^4e"));
+					doc.addField("Name_exact", asString(subs, "^4e"));
+					doc.setField("Name_sort", asString(subs, "^4e"));
 					break;
 				}
 				
@@ -333,20 +347,29 @@ public class App {
 				case 246:
 				case 247: {
 					doc.addField("Title", asString(subs));
+					doc.addField("Title_exact", asString(subs));
 					break;
 				}
 				
 				case 240:
 				case 242:
-				case 243:
+				case 243: {
+					doc.addField("Title", asString(subs));
+					doc.addField("Title_exact", asString(subs));
+					break;
+				}
+				
 				case 245: {
 					doc.addField("Title", asString(subs));
+					doc.addField("Title_exact", asString(subs));
+					doc.setField("Title_sort", asString(subs).substring(Integer.parseInt("" + ind2)));
 					break;
 				}
 				
 				case 260: {
 					doc.addField("CountryStateProv", asString(subs, "a"));
 					doc.addField("PublName", asString(subs, "b"));
+					doc.addField("PublName_exact", asString(subs, "b"));
 					doc.addField("Note", asString(subs));
 					break;
 				}
@@ -355,8 +378,11 @@ public class App {
 				case 410:
 				case 411: {
 					doc.addField("Series", asString(subs));
-					doc.addField("Name", asString(subs, "<t"));			  // before t
-					doc.addField("Title", asString(subs, ">t^xv"));		// after t except x,v
+					doc.addField("Series_exact", asString(subs));
+					doc.addField("Name", asString(subs, "<t"));			  			// before t
+					doc.addField("Name_exact", asString(subs, "<t"));			  // before t
+					doc.addField("Title", asString(subs, ">t^xv"));					// after t except x,v
+					doc.addField("Title_exact", asString(subs, ">t^xv"));		// after t except x,v
 					break;
 				}
 				
@@ -365,19 +391,23 @@ public class App {
 					doc.addField("SeriesVolumeNo", asStrings(subs, "v"));
 					doc.addField("Series", asString(subs, "^x"));
 					doc.addField("Title", asString(subs, "^xv"));
+					doc.addField("Title_exact", asString(subs, "^xv"));
 					break;
 				}
 				
 				case 490: {
 					doc.addField("Series", asString(subs, "^x"));
+					doc.addField("Series_exact", asString(subs, "^x"));
 					doc.addField("Note", asString(subs, "^x"));
 					doc.addField("Title", asString(subs, "^xv"));
+					doc.addField("Title_exact", asString(subs, "^xv"));
 					break;
 				}
 				
 				case 505: {
 					doc.addField("Note", asString(subs));
 					doc.addField("Title", asString(subs, "at"));
+					doc.addField("Title_exact", asString(subs, "at"));
 					break;
 				}
 				
@@ -387,12 +417,14 @@ public class App {
 					doc.addField("NameRelatorTerm", asStrings(subs, "e"));
 					doc.addField("SubjectSubdivision", asStrings(subs, "xyzv"));
 					doc.addField("SubjectHeading", asString(subs, null, "--"));		// -- should only separate vxyz
+					doc.addField("SubjectHeading_exact", asString(subs, null, "--"));		// -- should only separate vxyz
 				}
 				
 				case 611: {
 					doc.addField("NameRelatorCode", asStrings(subs, "4"));
 					doc.addField("SubjectSubdivision", asStrings(subs, "xyzv"));
 					doc.addField("SubjectHeading", asString(subs, null, "--"));		// -- should only separate vxyz
+					doc.addField("SubjectHeading_exact", asString(subs, null, "--"));		// -- should only separate vxyz
 				}
 				
 				case 630:
@@ -411,6 +443,7 @@ public class App {
 					doc.addField("NameRelatorCode", asStrings(subs, "4"));
 					doc.addField("SubjectSubdivision", asStrings(subs, "xyzv"));
 					doc.addField("SubjectHeading", asString(subs, null, "--"));		// -- should only separate vxyz
+					doc.addField("SubjectHeading_exact", asString(subs, null, "--"));		// -- should only separate vxyz
 				}
 
 
@@ -419,25 +452,31 @@ public class App {
 					doc.addField("NameRelatorCode", asStrings(subs, "4"));
 					doc.addField("NameRelatorTerm", asStrings(subs, "e"));
 					doc.addField("Name", asString(subs, "<t"));			  							// before t
+					doc.addField("Name_exact", asString(subs, "<t"));			  							// before t
 					doc.addField("Title", asString(subs, ">t^x"));									// after t except x
+					doc.addField("Title_exact", asString(subs, ">t^x"));									// after t except x
 					break;
 				}
 
 				case 711: {
 					doc.addField("NameRelatorCode", asStrings(subs, "4"));
 					doc.addField("Name", asString(subs, "<t"));			  							// before t
+					doc.addField("Name_exact", asString(subs, "<t"));			  							// before t
 					doc.addField("Title", asString(subs, ">t^x"));									// after t except x
+					doc.addField("Title_exact", asString(subs, ">t^x"));									// after t except x
 					break;
 				}		
 					
 				case 720: {
 					doc.addField("Name", asString(subs, "^x"));
+					doc.addField("Name_exact", asString(subs, "^x"));
 					break;
 				}		
 				
 				case 730: {
 					doc.addField("ISSN", asStrings(subs, "x"));
 					doc.addField("Title", asString(subs, "^x"));
+					doc.addField("Title_exact", asString(subs, "^x"));
 					break;
 				}	
 				
@@ -447,23 +486,31 @@ public class App {
 					doc.addField("NameRelatorTerm", asStrings(subs, "e"));
 					doc.addField("SeriesVolumeNo", asStrings(subs, "v"));
 					doc.addField("Series", asString(subs));
+					doc.addField("Series_exact", asString(subs));
 					doc.addField("Name", asString(subs, "<t"));			  							// before t
+					doc.addField("Name_exact", asString(subs, "<t"));			  							// before t
 					doc.addField("Title", asString(subs, ">t^v"));									// after t except v
+					doc.addField("Title_exact", asString(subs, ">t^v"));									// after t except v
 				}
 				
 				case 811: {
 					doc.addField("NameRelatorCode", asStrings(subs, "4"));
 					doc.addField("SeriesVolumeNo", asStrings(subs, "v"));
 					doc.addField("Series", asString(subs));
+					doc.addField("Series_exact", asString(subs));
 					doc.addField("Name", asString(subs, "<t"));			  							// before t
+					doc.addField("Name_exact", asString(subs, "<t"));			  							// before t
 					doc.addField("Title", asString(subs, ">t^v"));									// after t except v
+					doc.addField("Title_exact", asString(subs, ">t^v"));									// after t except v
 				}
 				
 				case 830:
 				case 840: {
 					doc.addField("SeriesVolumeNo", asStrings(subs, "v"));
 					doc.addField("Series", asString(subs));
+					doc.addField("Series_exact", asString(subs));
 					doc.addField("Title", asString(subs, "^v"));									// after t except v
+					doc.addField("Title_exact", asString(subs, "^v"));									// after t except v
 				}
 				
 				case 850: {
